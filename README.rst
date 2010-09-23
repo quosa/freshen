@@ -368,11 +368,8 @@ Using with Django
 -----------------
 
 Django_ is a popular framework for web applications. Freshen can work in conjunction with the
-`django-sane-testing`_ library to initialize the Django environment and databases before running
-tests. This feature is enabled by using the ``--with-django`` option from django-sane-testing. You
-can also use ``--with-djangoliveserver`` or ``--with-cherrypyliveserver`` to start a web server
-before the tests run for use with a UI testing tool such as `Selenium`_.
-
+`django_nose`_ library to initialize the Django environment and databases before running
+tests.
 
 Using with Selenium
 -------------------

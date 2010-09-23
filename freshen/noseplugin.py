@@ -17,6 +17,11 @@ from freshen.core import TagMatcher, load_language, load_feature, StepsRunner
 from freshen.context import *
 from freshen.stepregistry import StepImplLoader, StepImplRegistry, UndefinedStepImpl
 
+try:
+    from django.test import TestCase
+except ImportError:
+    from unittest import TestCase
+
 log = logging.getLogger('nose.plugins.freshen')
 
 # This line ensures that frames from this file will not be shown in tracebacks
@@ -34,20 +39,8 @@ class FeatureSuite(object):
         #log.debug("Clearing feature context")
         ftc.clear()
 
-class FreshenTestCase(unittest.TestCase):
-
-    start_live_server = True
-    database_single_transaction = True
-    database_flush = True
-    selenium_start = False
-    no_database_interaction = False
-    make_translations = True
-    required_sane_plugins = ["django", "http"]    
-    django_plugin_started = False
-    http_plugin_started = False
+class FreshenTestCase(TestCase):
     
-    test_type = "http"
-
     def __init__(self, step_runner, step_registry, feature, scenario, feature_suite):
         self.feature = feature
         self.scenario = scenario
@@ -63,6 +56,11 @@ class FreshenTestCase(unittest.TestCase):
         scc.clear()
         for hook_impl in self.step_registry.get_hooks('before', self.scenario.get_tags()):
             hook_impl.run(self.scenario)
+        if scc.fixtures:
+            self.fixtures = scc.fixtures
+        if hasattr(self, '_pre_setup'):
+            self._pre_setup()
+        super(FreshenTestCase, self).setUp()
     
     def runTest(self):
         for step in self.scenario.iter_steps():
@@ -79,7 +77,10 @@ class FreshenTestCase(unittest.TestCase):
     def tearDown(self):
         for hook_impl in reversed(self.step_registry.get_hooks('after', self.scenario.get_tags())):
             hook_impl.run(self.scenario)
-
+        super(FreshenTestCase, self).tearDown()
+        if hasattr(self, '_post_teardown'):
+            self._post_teardown()
+    
 
 class FreshenErrorPlugin(ErrorClassPlugin):
 
